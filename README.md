@@ -1,5 +1,4 @@
-Actived Microsoft Teams Notifier
-================================
+# bitbirddev Microsoft Teams Monolog Handler
 
 ![Package Version](https://img.shields.io/badge/Version-1.2.0-brightgreen.svg)
 
@@ -13,17 +12,16 @@ The package aims to provide global messaging & log system that uses Microsoft Te
 - Simple messaging
 
 # Install
-```sh
-$ composer require actived/microsoft-teams-notifier
-```
 
-### Since version 1.1 of the package, `"symfony/monolog-bundle"` was removed and replaced with `"monolog/monolog"` dependency that makes Actived Microsoft Teams Notifier more flexible for global use:
+```sh
+$ composer require bitbirddev/microsoft-teams-monolog-handler
+```
 
 Please consider running `composer suggest` command to install required and missing dependencies related to framework you use (ex. Symfony):
 
 ```sh
 $ composer suggest
-actived/microsoft-teams-notifier suggests:
+bitbirddev/microsoft-teams-monolog-handler suggests:
  - symfony/monolog-bundle: The MonologBundle provides integration of the Monolog library into the Symfony framework.
 ```
 
@@ -34,57 +32,58 @@ Follow these steps to set up new Webhook:
 - In Microsoft Teams, choose More options (⋯) next to the channel name and then choose 'Connectors'
 - Find in the list of Connectors the 'Incoming Webhook' option, and choose 'Add'
 - Provide required information for the new Webhook
-- Copy the Webhook url - that information will be used to configure the package with `ACTIVED_MS_TEAMS_DSN`
+- Copy the Webhook url - that information will be used to configure the package with `MICROSOFT_TEAMS_WEBHOOK_URL`
 
 # Symfony configuration
 
 Place the code below in `.env` file:
 
 ```yaml
-###> actived/microsoft-teams-notifier ###
-ACTIVED_MS_TEAMS_DSN=webhook_dsn
-###< actived/microsoft-teams-notifier ###
+###> bitbirddev/microsoft-teams-monolog-handler ###
+MICROSOFT_TEAMS_WEBHOOK_URL=webhook_url (without https://)
+###< bitbirddev/microsoft-teams-monolog-handler ###
 ```
 
-Register `ActivedMicrosoftTeamsHandler.php` as a new service with the code below:
+Register `MicrosoftTeamsMonologHandler.php` as a new service with the code below:
 
 ```diff
 // config\services.yaml
 
 services:
     ...
-    
-    # ACTIVED MICROSOFT TEAMS NOTIFIER
-+    actived_ms_teams_handler:
-+        class: Actived\MicrosoftTeamsNotifier\Handler\MicrosoftTeamsHandler
+
+    # MICROSOFT TEAMS MONOLOG HANDLER
++    ms_teams_monolog_handler:
++        class: bitbirddev\MicrosoftTeamsNotifier\Handler\MicrosoftTeamsHandler
 +        arguments:
-+            $webhookDsn: '%env(ACTIVED_MS_TEAMS_DSN)%'
++            $webhookDsn: '%https://env(MICROSOFT_TEAMS_WEBHOOK_URL)%'
 +            $level: 'error'
-+            $title: 'Message title' 
-+            $subject: 'Message subject' 
-+            $emoji:  '&#x1F6A8'  
-+            $color: '#fd0404' 
++            $title: 'Message title'
++            $subject: 'Message subject'
++            $emoji:  '&#x1F6A8'
++            $color: '#fd0404'
 +            $format: '[%%datetime%%] %%channel%%.%%level_name%%: %%message%%'
 ```
-> *$webhookDsn:*  
+
+> _$webhookDsn:_  
 > Microsoft Teams webhook url
 >
-> *$level:*  
+> _$level:_  
 > the minimum level for handler to be triggered and the message be logged in the channel (Monolog/Logger class: ‘error’ = 400)
-> 
-> *$title (nullable):*  
+>
+> _$title (nullable):_  
 > title of Microsoft Teams Message
-> 
-> *$subject (nullable):*  
+>
+> _$subject (nullable):_  
 > subject of Microsoft Teams Message
 >
-> *$emoji (nullable):*  
+> _$emoji (nullable):_  
 > emoji of Microsoft Teams Message (displayed next to the message title). Value needs to reflect the pattern: ‘&#x<EMOJI_HEX_CODE>’
-> 
-> *$color (nullable):*  
+>
+> _$color (nullable):_  
 > hexadecimal color value for Message Card color theme
-> 
-> *$format (nullable):*  
+>
+> _$format (nullable):_  
 > every handler uses a Formatter to format the record before logging it. This attribute can be set to overwrite default log message (available options: %datetime% | %extra.token% | %channel% | %level_name% | %message%).
 
 Modify your Monolog settings that will point from now to the new handler:
@@ -96,27 +95,27 @@ Modify your Monolog settings that will point from now to the new handler:
 monolog:
     handlers:
         ...
-        
-        # ACTIVED MICROSOFT TEAMS NOTIFIER
+
+        # MICROSOFT TEAMS HANDLER
 +        teams:
 +            type: service
-+            id: actived_ms_teams_handler
++            id: ms_teams_monolog_handler
 ```
 
-> *type:*  
+> _type:_  
 > handler type (in our case this references custom notifier service)
 >
-> *id:*  
-> notifier service class \Actived\MicrosoftTeamsNotifier\LogMonolog
+> _id:_  
+> notifier service class \bitbirddev\MicrosoftTeamsNotifier\LogMonolog
 
 # Laravel configuration
 
 Place the code below in `.env` file:
 
 ```yaml
-###> actived/microsoft-teams-notifier ###
-ACTIVED_MS_TEAMS_DSN=webhook_dsn
-###< actived/microsoft-teams-notifier ###
+###> bitbirddev/microsoft-teams-monolog-handler ###
+MICROSOFT_TEAMS_WEBHOOK_URL=webhook_url (without https://)
+###< bitbirddev/microsoft-teams-monolog-handler ###
 ```
 
 Modify your Monolog logging settings that will point to the new handler:
@@ -141,11 +140,11 @@ return [
             'ignore_exceptions' => false
         ],
 
-         # ACTIVED MICROSOFT TEAMS NOTIFIER
+         # MICROSOFT TEAMS MONOLOG HANDLER
 +       'custom' => [
 +            'driver' => 'custom',
-+            'via' => \Actived\MicrosoftTeamsNotifier\LogMonolog::class,
-+            'webhookDsn' => env('ACTIVED_MS_TEAMS_DSN'),
++            'via' => \bitbirddev\MicrosoftTeamsNotifier\LogMonolog::class,
++            'webhookDsn' => 'https://env('MICROSOFT_TEAMS_WEBHOOK_URL)',
 +            'level'  => env('LOG_LEVEL', 'debug'), // or simply 'debug'
 +            'title'  => 'Message Title', // can be NULL
 +            'subject'  => 'Message Subject', // can be NULL
@@ -156,39 +155,40 @@ return [
 
 ...
 ```
-> *driver:*  
+
+> _driver:_  
 > is a crucial part of each channel that defines how and where the log message is recorded. The ‘custom’ driver calls a specified factory to create a channel.
 >
-> *via:*  
+> _via:_  
 > factory class which will be invoked to create the Monolog instance
-> 
-> *webhookDsn:*  
+>
+> _webhookDsn:_  
 > Microsoft Teams webhook url
-> 
-> *level:*  
+>
+> _level:_  
 > the minimum level for handler to be triggered and the message be logged in the channel (Monolog/Logger class: ‘debug’ = 100)
 >
-> *title (nullable):*  
+> _title (nullable):_  
 > title of Microsoft Teams Message
-> 
-> *subject (nullable):*  
+>
+> _subject (nullable):_  
 > subject of Microsoft Teams Message
 >
-> *emoji (nullable):*  
+> _emoji (nullable):_  
 > emoji of Microsoft Teams Message (displayed next to the message title). Value needs to reflect the pattern: ‘&#x<EMOJI_HEX_CODE>’
 >
-> *color (nullable):*  
+> _color (nullable):_  
 > hexadecimal color value for Message Card color theme
 >
-> *format (nullable):*  
+> _format (nullable):_  
 > message template - available options: %datetime% | %extra.token% | %channel% | %level_name% | %message%
-
 
 # Usage
 
 Correctly configured service in Symfony/Laravel will raise Logs in Microsoft Teams automatically accordingly to level assigned to.
 
 ### Symfony - manual messaging
+
 ```php
 // LoggerInterface $logger
 $logger->info('Info message with custom Handler');
@@ -196,6 +196,7 @@ $logger->error('Error message with custom Handler');
 ```
 
 ### Laravel - manual messaging
+
 ```php
 // Illuminate\Support\Facades\Log
 Log::channel('custom')->info('Info message with custom Handler');
@@ -203,5 +204,5 @@ Log::channel('custom')->error('Error message with custom Handler');
 ```
 
 # License
-The code is available under the MIT license. See the LICENSE file for more info.
 
+The code is available under the MIT license. See the LICENSE file for more info.

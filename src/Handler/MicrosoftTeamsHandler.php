@@ -1,21 +1,13 @@
-<?php declare(strict_types=1);
+<?php
 
-/*
- * This file is part of the Actived/microsoft-teams-notifier
- *
- * Copyright (c) 2021 Actived
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
+declare(strict_types=1);
 
-namespace Actived\MicrosoftTeamsNotifier\Handler;
+namespace bitbirddev\MicrosoftTeamsNotifier\Handler;
 
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Level;
-use Monolog\Logger;
 use Monolog\LogRecord;
 use Psr\Log\LogLevel;
 
@@ -23,18 +15,21 @@ class MicrosoftTeamsHandler extends AbstractProcessingHandler
 {
     /**
      * MicrosoftTeams Webhook DSN
+     *
      * @var string
      */
     private string $webhookDsn;
 
     /**
      * Instance of the MicrosoftTeamsRecord
+     *
      * @var MicrosoftTeamsRecord
      */
     private MicrosoftTeamsRecord $microsoftTeamsRecord;
 
     /**
      * Format of the message
+     *
      * @var string|null
      */
     private ?string $format;
@@ -56,12 +51,11 @@ class MicrosoftTeamsHandler extends AbstractProcessingHandler
         int|string|Level $level = Level::Debug,
         string $title = 'Message',
         string $subject = 'Date',
-        ?string $emoji = null,
+        ?string $emoji = 'auto',
         ?string $color = null,
         ?string $format = '%message%',
         bool $bubble = true
-    )
-    {
+    ) {
         parent::__construct($level, $bubble);
 
         $this->webhookDsn = $webhookDsn;
@@ -71,6 +65,7 @@ class MicrosoftTeamsHandler extends AbstractProcessingHandler
 
     /**
      * {@inheritdoc}
+    * @throws \RuntimeException
      */
     protected function getDefaultFormatter(): FormatterInterface
     {
@@ -106,7 +101,7 @@ class MicrosoftTeamsHandler extends AbstractProcessingHandler
         $ch = curl_init();
 
         curl_setopt($ch, CURLOPT_URL, $this->webhookDsn);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1 );
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
         curl_setopt($ch, CURLOPT_HEADER, true);
@@ -118,7 +113,9 @@ class MicrosoftTeamsHandler extends AbstractProcessingHandler
     /**
      * @param \CurlHandle $ch
      * @param int $repeat
+     *
      * @return bool|string
+     *
      * @throws \RuntimeException
      */
     public static function execute(\CurlHandle $ch, int $repeat = 3): bool|string

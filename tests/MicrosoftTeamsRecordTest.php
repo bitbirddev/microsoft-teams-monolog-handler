@@ -1,20 +1,10 @@
 <?php
 
-/*
- * This file is part of the Actived/microsoft-teams-notifier
- *
- * Copyright (c) 2021 Actived
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
+namespace bitbirddev\MicrosoftTeamsNotifier;
 
-namespace Actived\MicrosoftTeamsNotifier;
-
-use Actived\MicrosoftTeamsNotifier\Handler\MicrosoftTeamsRecord;
+use bitbirddev\MicrosoftTeamsNotifier\Handler\MicrosoftTeamsRecord;
 use Monolog\DateTimeImmutable;
 use Monolog\Level;
-use Monolog\Logger;
 use Monolog\LogRecord;
 use PHPUnit\Framework\TestCase;
 
